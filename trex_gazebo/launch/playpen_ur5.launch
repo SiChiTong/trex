@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="world_name" default="$(find trex_gazebo)/worlds/clearpath_playpen.world"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world_name)"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+	
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find trex_description)/urdf/trex.xacro'" />
+
+  <include file="$(find trex_gazebo)/launch/trex_spawn.launch">
+    <arg name="ur5_enabled"       value="true"/>
+    <arg name="velodyne_enabled"  value="false"/>
+    <arg name="sick_enabled"      value="true"/>
+    <arg name="kinectv2_enabled"  value="true"/>
+    <arg name="mbzirc_gripper"    value="false"/>
+  </include>
+
+</launch>
