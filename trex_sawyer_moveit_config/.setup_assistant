@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: sawyer_gazebo
+    relative_path: urdf/sawyer_trex.urdf.xacro
+  SRDF:
+    relative_path: config/trex_sawyer.srdf
+  CONFIG:
+    author_name: TODO
+    author_email: TODO@vt.edu
+    generated_timestamp: 1498849249

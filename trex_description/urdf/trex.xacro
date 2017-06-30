@@ -1,0 +1,334 @@
+<?xml version="1.0"?>
+<robot name="trex" xmlns:xacro="http://www.ros.org/wiki/xacro">     
+  <xacro:arg name="ur5_enabled" default="false" />
+  <xacro:arg name="velodyne_enabled" default="false" />
+  <xacro:arg name="sick_enabled" default="false" />
+  <xacro:arg name="kinectv2_enabled" default="true" />
+  <xacro:arg name="mbzirc_gripper" default="false" />
+  <xacro:property name="PI" value="3.1415926535897931" />
+
+  <xacro:property name="wheelbase" value="0.7" />
+  <xacro:property name="track" value="0.64" />
+  <xacro:property name="wheel_vertical_offset" value="0.1651" />
+  <xacro:property name="footprint_vertical_offset" value=".24866" />
+
+  <xacro:property name="wheel_cover_y_spacing" value="0.291" />
+  <xacro:property name="wheel_cover_z_spacing" value="0.344" />
+
+  <xacro:property name="wheel_radius" value="0.1651" />
+  <xacro:property name="wheel_width" value="0.1016" />
+
+  <xacro:property name="chassis_length" value="0.95" />
+  <xacro:property name="chassis_width" value="0.747" />
+  <xacro:property name="chassis_height" value="0.41" />
+
+  <xacro:property name="dummy_inertia" value="1e-09"/>
+
+  <xacro:property name="cameraSize" value="0.025"/>
+  <xacro:property name="cameraMass" value="0.05"/>
+
+  <xacro:include filename="$(find trex_description)/urdf/trex.gazebo" />
+  <xacro:include filename="$(find trex_description)/urdf/materials.xacro" />
+  <xacro:include filename="$(find trex_description)/urdf/accessories/microstrain.xacro" />
+  <xacro:include filename="$(find velodyne_description)/urdf/HDL-32E.urdf.xacro" />
+  <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro" />
+  <xacro:include filename="$(find trex_description)/urdf/accessories/sick_lms1xx_mount.urdf.xacro"/>
+  <xacro:include filename="$(find trex_description)/urdf/accessories/sensor_arch.urdf.xacro"/>
+  <xacro:include filename="$(find trex_description)/urdf/accessories/kinectv2_camera.urdf.xacro"/>
+
+<xacro:macro name="wheel" params="prefix *joint_pose">
+
+    <link name="${prefix}_wheel_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+       <mesh filename="package://trex_description/meshes/wheel.STL"/>
+        </geometry>
+        <material name="trex_black" />
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+        <geometry>
+         <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="4.25"/>
+        <inertia
+          ixx="0.03" ixy="0" ixz="0"
+          iyy="0.263" iyz="0"
+          izz="0.03"/>
+      </inertial>
+    </link>
+
+    <gazebo reference="${prefix}_wheel_link">
+      <material>Gazebo/DarkGrey</material>
+    </gazebo>
+
+    <joint name="${prefix}_wheel" type="continuous">
+      <parent link="chassis_link"/>
+      <child link="${prefix}_wheel_link" />
+      <xacro:insert_block name="joint_pose" />
+      <axis xyz="0 1 0" />
+    </joint>
+
+    <!-- In reality, TREX has only two motors, one per side. However, it's more
+         straightforward for Gazebo to simulate as if there's an actuator per wheel. -->
+    <transmission name="${prefix}_wheel_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}_wheel">
+        <hardwareInterface>VelocityJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}_actuator">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+  </xacro:macro>
+
+  <xacro:wheel prefix="front_left">
+    <origin xyz="${wheelbase/2} ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+  </xacro:wheel>
+  <xacro:wheel prefix="front_right">
+    <origin xyz="${wheelbase/2} ${-track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+  </xacro:wheel>
+  <xacro:wheel prefix="rear_left">
+    <origin xyz="${-wheelbase/2} ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+  </xacro:wheel>
+  <xacro:wheel prefix="rear_right">
+    <origin xyz="${-wheelbase/2} ${-track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+  </xacro:wheel>
+
+  <link name="base_link"></link>
+
+  <joint name="base_link_joint" type="fixed">
+
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="base_link"/>
+    <child link="chassis_link" />
+  </joint>
+
+
+
+  <link name="chassis_link">
+    <visual>
+      <origin xyz="0 0 ${footprint_vertical_offset}" rpy="0 0 0"/>
+      <geometry>
+       <mesh filename="package://trex_description/meshes/Chassis.STL"/>
+      </geometry>
+<material name="trex_black" />
+     </visual>
+    <collision>
+      <origin xyz="0 0 ${footprint_vertical_offset}" rpy="0 0 0"/>
+      <geometry>
+       <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <!-- Center of mass -->
+      <origin xyz="0.00  0.00 ${footprint_vertical_offset}" rpy="0 0 0"/>
+       <!--<origin xyz="0.012  0.002 0.067" rpy="0 0 0"/>-->
+      <mass value="67"/>
+      <!-- Moments of inertia: ( chassis without wheels ) -->
+      <inertia
+        ixx="2" ixy="-0.00" ixz="-0.00"
+        iyy="3.68" iyz="-0.0000"
+        izz="5.42"/>
+      </inertial>
+  </link>
+    <gazebo reference="chassis_link">
+      <material>Gazebo/DarkGrey</material>
+    </gazebo>
+<!--############################################wheelscover#################################################-->
+
+
+    <link name="left_wheel_cover_link">
+      <visual>
+        <origin xyz="0 0 ${wheel_cover_z_spacing}" rpy="0 0 0"/>
+        <geometry>
+       <mesh filename="package://trex_description/meshes/wheelscover.STL"/>
+        </geometry>
+        <material name="trex_red" />
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${wheel_cover_z_spacing}" rpy="0 0 0"/>
+        <geometry>
+         <mesh filename="package://trex_description/meshes/wheelscover.STL"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="1.3"/>
+        <inertia
+          ixx="0.00" ixy="0" ixz="0"
+          iyy="0.01" iyz="0"
+          izz="0.01"/>
+      </inertial>
+    </link>
+
+    <link name="right_wheel_cover_link">
+      <visual>
+        <origin xyz="0 0 ${wheel_cover_z_spacing}" rpy="0 0 0"/>
+        <geometry>
+       <mesh filename="package://trex_description/meshes/wheelscover.STL"/>
+        </geometry>
+        <material name="trex_red" />
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${wheel_cover_z_spacing}" rpy="0 0 0"/>
+        <geometry>
+         <mesh filename="package://trex_description/meshes/wheelscover.STL"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="1.3"/>
+        <inertia
+          ixx="0.00" ixy="0" ixz="0"
+          iyy="0.01" iyz="0"
+          izz="0.01"/>
+      </inertial>
+    </link>
+
+    <gazebo reference="left_wheel_cover_link">
+      <material>Gazebo/Red</material>
+    </gazebo>
+    <gazebo reference="right_wheel_cover_link">
+      <material>Gazebo/Red</material>
+    </gazebo>
+
+     <joint name="left_wheel_cover" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <parent link="chassis_link"/>
+      <child link="left_wheel_cover_link" />
+    </joint>
+    <joint name="right_wheel_cover" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 ${PI}" />
+      <parent link="chassis_link"/>
+      <child link="right_wheel_cover_link" />
+    </joint>
+  
+
+<!--############################################wheelscover#################################################-->
+
+<!--############################################IMU####################################################-->
+
+<!--xacro:microstrain_sensor sensorName="mstrain" parentLink="chassis_link" origin_xyz="-0.145 0 0.375" origin_rpy="0 0 0"/ -->
+  <link name="imu">
+    <inertial>
+      <mass value="0.001"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="${dummy_inertia}" ixy="0.0" ixz="0.0" iyy="${dummy_inertia}" iyz="0.0" izz="${dummy_inertia}"/>
+    </inertial>
+  </link>
+  <joint name="imu_joint" type="fixed">
+    <parent link="chassis_link" />
+    <origin xyz="-0.145 0.000 0.375" rpy="0 0 0" />
+    <child link="imu" />
+  </joint>
+
+<!--############################################sicklms1xx#################################################
+-->
+    <xacro:if value="$(arg sick_enabled)">
+      <sick_lms1xx_mount prefix="base" topic="scan"/>
+      <joint name="laser_mount_joint" type="fixed">
+        <origin xyz="0.6 0 0.23"
+                rpy="0 0 0" />
+        <parent link="base_link" />
+        <child link="base_laser_mount" />
+      </joint>
+    </xacro:if>
+
+<!--############################################VELODYNE##################################################-->
+    <xacro:if value="$(arg velodyne_enabled)">
+      <HDL-32E parent="base_link" name="velodyne_link" topic="velodyne_points" >
+        <origin xyz="0.6 0 0.23" rpy="0 0 -1.57"/>
+      </HDL-32E>
+    </xacro:if>
+
+    <link name="hokuyo">
+      <inertial>
+        <mass value="0.001"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="${dummy_inertia}" ixy="0.0" ixz="0.0" iyy="${dummy_inertia}" iyz="0.0" izz="${dummy_inertia}"/>
+      </inertial>
+    </link>
+    <joint name="hokuyo_mount" type="fixed">
+      <parent link="base_link"/>
+      <child link="hokuyo"/>
+      <origin xyz="0.6 0 0.2" rpy="3.14 0 0"/>
+    </joint>
+<!--############################################UR5##################################################-->
+
+    <xacro:if value="$(arg ur5_enabled)">
+
+      <xacro:property name="reflect" value="-1" />
+      <xacro:ur5_robot prefix="ur5_arm_" joint_limited="true"/>
+      <joint name="ur5_arm_base" type="fixed">
+        <parent link="chassis_link" />
+        <child link="ur5_arm_base_link" />
+        <origin xyz="0.335 0 0.375" rpy="0.0 0.0 -1.57079632679" />
+      </joint>
+      <!-- Spawn gripper-->
+      <xacro:if value="$(arg mbzirc_gripper)">
+        <xacro:include filename="$(find gripper_description)/urdf/gripper.urdf.xacro" />
+        <xacro:gripper_spawn prefix="ur5_arm_gripper_"/>
+          <joint name="base_to_arm" type="fixed">
+            <parent link="ur5_arm_wrist_3_link"/>
+            <child link="ur5_arm_gripper_base_link"/>
+            <origin xyz="0 0.09 0" rpy="0 0 0"/>
+          </joint>
+        </xacro:if>
+    </xacro:if>
+
+
+<!--############################################KINECT##################################################-->
+    <xacro:if value="$(arg kinectv2_enabled)">
+      <xacro:sensor_arch prefix="" parent="chassis_link">
+        <origin xyz="-0.45 0 0.88" rpy="0 0 -3.14159265359"/>
+      </xacro:sensor_arch>
+
+      <!-- Attach the camera mount to the sensor arch -->
+      <joint name="camera_mount_joint" type="fixed">
+           <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 3.14159265359"/>
+           <parent link="sensor_arch_mount_link"/>
+           <child link="camera_mount_link"/>
+      </joint>
+
+      <!-- Spawn the kinectv2 mount link -->
+      <link name="camera_mount_link">
+        <visual>
+          <origin xyz="0.0 0.0 0.0" rpy="1.57079632679 0.0 1.57079632679"/>
+          <geometry>
+            <mesh filename="package://trex_description/meshes/accessories/kinectv2_mount.dae" />
+          </geometry>
+          <material name="LightGrey">
+            <color rgba="0.2 0.2 0.2 1.0"/>
+          </material>
+        </visual>
+        <collision>
+          <origin xyz="0.0 0.0 0.0" rpy="1.57079632679 0.0 1.57079632679"/>
+          <geometry>
+            <mesh filename="package://trex_description/meshes/accessories/kinectv2_mount.stl" />
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name="camera_link_joint" type="fixed">
+        <origin xyz="0.028 -0.096 0.112" rpy="0.0 0.0 0.0" />
+        <parent link="camera_mount_link"/>
+        <child link="camera_link"/>
+      </joint>
+
+      <link name="kinect2_link" />
+      <joint name="kinect2_link_joint" type="fixed">
+        <origin xyz="0.0 0.0 0.0" rpy="-1.57079632679 0 -1.57079632679" />
+        <parent link="camera_link"/>
+        <child link="kinect2_link"/>
+      </joint>
+
+      <xacro:kinectv2_camera prefix="camera"/>
+
+    </xacro:if>
+
+</robot>
