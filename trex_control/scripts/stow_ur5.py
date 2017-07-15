@@ -8,9 +8,7 @@ from trajectory_msgs.msg import *
 JOINT_NAMES = ['ur5_arm_shoulder_pan_joint', 'ur5_arm_shoulder_lift_joint', 'ur5_arm_elbow_joint',
                'ur5_arm_wrist_1_joint', 'ur5_arm_wrist_2_joint', 'ur5_arm_wrist_3_joint']
 
-Q1 = [1.57,-1.57,0,-1.57,0,0]
-Q2 = [-1.57,-1.57,0,-1.57,0,0]
-Q3 = [-1.57,-0.1745,-2.79,-1.57,-1.57,0]
+Q1 = [-1.57,-0.1745,-2.79,-1.57,-1.57,0]
 
 client = None
 
@@ -19,9 +17,7 @@ def move():
     g.trajectory = JointTrajectory()
     g.trajectory.joint_names = JOINT_NAMES
     g.trajectory.points = [
-        JointTrajectoryPoint(positions=Q1, velocities=[0]*6, time_from_start=rospy.Duration(2.0)),
-        JointTrajectoryPoint(positions=Q2, velocities=[0]*6, time_from_start=rospy.Duration(3.0)),
-        JointTrajectoryPoint(positions=Q3, velocities=[0]*6, time_from_start=rospy.Duration(6.0))]
+        JointTrajectoryPoint(positions=Q1, velocities=[0]*6, time_from_start=rospy.Duration(2.0))]
     client.send_goal(g)
     try:
         client.wait_for_result()
@@ -38,9 +34,7 @@ def move_disordered():
     q2 = [Q2[i] for i in order]
     q3 = [Q3[i] for i in order]
     g.trajectory.points = [
-        JointTrajectoryPoint(positions=q1, velocities=[0]*6, time_from_start=rospy.Duration(2.0)),
-        JointTrajectoryPoint(positions=q2, velocities=[0]*6, time_from_start=rospy.Duration(3.0)),
-        JointTrajectoryPoint(positions=q3, velocities=[0]*6, time_from_start=rospy.Duration(4.0))]
+        JointTrajectoryPoint(positions=q1, velocities=[0]*6, time_from_start=rospy.Duration(2.0))]
     client.send_goal(g)
     client.wait_for_result()
     
@@ -55,12 +49,6 @@ def move_repeated():
         g.trajectory.points.append(
             JointTrajectoryPoint(positions=Q1, velocities=[0]*6, time_from_start=rospy.Duration(d)))
         d += 1
-        g.trajectory.points.append(
-            JointTrajectoryPoint(positions=Q2, velocities=[0]*6, time_from_start=rospy.Duration(d)))
-        d += 1
-        g.trajectory.points.append(
-            JointTrajectoryPoint(positions=Q3, velocities=[0]*6, time_from_start=rospy.Duration(d)))
-        d += 2
     client.send_goal(g)
     try:
         client.wait_for_result()
@@ -73,9 +61,7 @@ def move_interrupt():
     g.trajectory = JointTrajectory()
     g.trajectory.joint_names = JOINT_NAMES
     g.trajectory.points = [
-        JointTrajectoryPoint(positions=Q1, velocities=[0]*6, time_from_start=rospy.Duration(2.0)),
-        JointTrajectoryPoint(positions=Q2, velocities=[0]*6, time_from_start=rospy.Duration(3.0)),
-        JointTrajectoryPoint(positions=Q3, velocities=[0]*6, time_from_start=rospy.Duration(4.0))]
+        JointTrajectoryPoint(positions=Q1, velocities=[0]*6, time_from_start=rospy.Duration(2.0))]
     
     client.send_goal(g)
     time.sleep(2.0)

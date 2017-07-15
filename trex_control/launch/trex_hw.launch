@@ -1,51 +1,121 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="joy_dev" value="/dev/input/js0" />
-  <arg name="joystick" value="true" />
+  <arg name="gps_piksi" default="false"/>
+  <arg name="gps_port" default="/dev/ttyUSB2"/>
+  <arg name="imu_ms" default="true"/>
+  <arg name="imu_port" default="/dev/ttyACM2"/>
+  <arg name="ur5_enabled" default="true"/>
+  <arg name="sawyer_enabled" default="false"/>
+  <arg name="velodyne_enabled" default="false"/>
+  <arg name="hokuyo_enabled" default="false"/>
+  <arg name="ee_mbzirc" default="true"/>
+  <arg name="ee_mbzirc_port" default="/dev/ttyUSB0"/>
+  <arg name="ee_mbzirc_cam_port" default="/dev/video0"/>
+  <arg name="ee_mbzirc_cam_width" default="960"/>
+  <arg name="ee_mbzirc_cam_height" default="540"/>
+  <arg name="ee_mbzirc_cam_frame" default="usb_cam"/>
+  <arg name="ee_mbzirc_cam_autofocus" default="false"/>
+  <arg name="ee_mbzirc_cam_focus" default="20"/>
+  <arg name="ee_mbzirc_cam_fps" default="5"/>
+  <arg name="publish_odom" default="true"/>
+  <arg name="joy_dev" default="/dev/input/js0" />
+  <arg name="joystick" default="true" />
+  <arg name="rviz_enabled" default="true"/>
+  <arg name="rviz_cfg" default="$(find trex_description)/rviz/trex.rviz"/>
 
-  <node pkg="rosserial_python" type="serial_node.py" name="serial_node_left_motors">
+  <!-- Launch motor arduinos -->
+  <node pkg="rosserial_python" type="serial_node.py" name="serial_node_right_motors">
     <param name="port" value="/dev/ttyACM0"/>
   </node>
 
-  <node pkg="rosserial_python" type="serial_node.py" name="serial_node_right_motors">
+  <node pkg="rosserial_python" type="serial_node.py" name="serial_node_left_motors">
     <param name="port" value="/dev/ttyACM1"/>
   </node>
   
+  <!-- Load URDF with specified accessories -->
+  <include file="$(find trex_description)/launch/description.launch">
+    <arg name="sawyer_enabled" value="$(arg sawyer_enabled)"/>
+    <arg name="ur5_enabled" value="$(arg ur5_enabled)"/>
+    <arg name="velodyne_enabled" value="$(arg velodyne_enabled)"/>
+  </include>
 
-  <node pkg="tele_controller" type="odom_pub_node" name="odom_pub_node"/>
-  <node pkg="tele_controller" type="joy_teleop2.py" name="teleop_node"/>
-  <node pkg="joy" type="joy_node" name="joy_node"/>
+  <!-- Accessories Launch -->
+  <!-- UR5 Arm -->
+  <group if="$(arg ur5_enabled)">
+    <rosparam file="$(find trex_ur5_moveit)/config/controllers.yaml"/>
+    <include file="$(find trex_description)/launch/ur5.launch" />
+    <include file="$(find trex_ur5_moveit)/launch/trex_ur5_planning_execution.launch">
+      <arg name="physical_robot" value="true"/>
+    </include>
+    <node name="move_arm_topic" pkg="trex_control" type="move_arm_topic_phys.py"/>
+  </group>
 
+  <!-- MBZIRC End Effector -->
+  <group if="$(arg ee_mbzirc)">
+    <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen">
+      <param name="video_device" value="$(arg ee_mbzirc_cam_port)"/>
+      <param name="image_width" value="$(arg ee_mbzirc_cam_width)" />
+      <param name="image_height" value="$(arg ee_mbzirc_cam_height)" />
+      <param name="pixel_format" value="yuyv" />
+      <param name="camera_frame_id" value="$(arg ee_mbzirc_cam_frame)" />
+      <param name="io_method" value="mmap"/>
+      <param name="autofocus" value="$(arg ee_mbzirc_cam_autofocus)"/>
+      <param name="focus" value="$(arg ee_mbzirc_cam_focus)"/>
+      <param name="framerate" value="$(arg ee_mbzirc_cam_fps)"/>
+    </node>
+    <node name="gripper_controller" pkg="rosserial_python" type="serial_node.py">
+      <param name="port" value="$(arg ee_mbzirc_port)"/>
+    </node>
+  </group>
+
+  <!-- Piksi GPS -->
+  <group if="$(arg gps_piksi)">
+    <include file="$(find swiftnav_piksi)/launch/swiftnav_piksi.launch">
+      <arg name="port" value="$(arg gps_port)"/>
+    </include>
+  </group>
+  <node pkg="tf" name="gps2odom" type="static_transform_publisher" args="5.755 -3.294 -0.507 -0.9076 0 0 gps odom 100"/>
+
+  <!-- Microstrain IMU -->
+  <group if="$(arg imu_ms)">
+    <node pkg="microstrain_3dmgx2_imu" type="imu_node" name="imu_node">
+      <param name="time_offset" value="-0.040" />
+      <param name="port"  type="string" value="$(arg imu_port)" />
+      <param name="autostart" type="bool" value="true" />
+      <param name="frameid"  type="string" value="imu" />
+      <param name="autocalibrate" type="bool" value="true" />
+      <param name="angular_velocity_stdev" type="double" value="0.00017" />
+    </node>
+  </group>
+
+  <!-- Joystick -->
+  <group if="$(arg joystick)">
+    <!--node pkg="trex_control" type="trex_teleop.py" name="teleop_node"/-->
+    <!--node pkg="tele_controller" type="joy_teleop2.py" name="teleop_node"/-->
+    <node pkg="joy" type="joy_node" name="joy_node">
+      <param name="joy" type="string" value="$(arg joy_dev)"/>
+    </node>
+  </group>
+
+  <!-- Publish Odometry -->
+  <group if="$(arg publish_odom)">
+    <node pkg="tele_controller" type="odom_pub_node" name="odom_pub_node"/>
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" >
+      <rosparam command="load" file="$(find trex_control)/config/localization.yaml" />
+    </node>
+  </group>
+
+  <!-- PUBLISH JOINT STATES -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+  <!-- RVIZ -->
+  <group if="$(arg rviz_enabled)">
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rviz_cfg)" output="screen"/>
+  </group>
   <!--rosparam command="load" file="$(find trex_control)/config/teleop.yaml" />
-
   <node pkg="joy" type="joy_node" name="joy_node">
     <param name="dev" value="$(arg joy_dev)" />
   </node>
-
   <node pkg="teleop_twist_joy" type="teleop_node" name="teleop_twist_joy"/-->
-
-  <include file="$(find swiftnav_piksi)/launch/swiftnav_piksi.launch"/>
-  <node pkg="tf" name="gps2odom" type="static_transform_publisher" args="5.755 -3.294 -0.507 -0.9076 0 0 gps odom 100"/>
-
-  <include file="$(find trex_description)/launch/description.launch"/>
-  
-  <node pkg="microstrain_3dmgx2_imu" type="imu_node" name="imu_node">
-    <param name="time_offset" value="-0.040" />
-    <param name="port"  type="string" value="/dev/ttyUSB0" />
-    <param name="autostart" type="bool" value="true" />
-    <param name="frameid"  type="string" value="imu" />
-    <param name="autocalibrate" type="bool" value="true" />
-    <param name="angular_velocity_stdev" type="double" value="0.00017" />
-  </node>
- 
- <!--node pkg="um7" type="um7_driver" name="imu_node">
-    <param name="port" value="/dev/ttyUSB1"/>
-    <param name="zero_gyros" value="true"/>
-    <param name="covariance" value="0 0 0 0 0 0.00000001 0 0odo 0.000000001"/>
-  </node-->
-
-  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" >
-    <rosparam command="load" file="$(find trex_control)/config/localization.yaml" />
-  </node>
 
 </launch>

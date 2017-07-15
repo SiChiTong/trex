@@ -2,6 +2,7 @@
 <launch>
 
   <arg name="world_name" default="$(find trex_gazebo)/worlds/clearpath_playpen.world"/>
+  <arg name="joy_dev" default="/dev/input/js0" />
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(arg world_name)"/>
@@ -20,5 +21,14 @@
     <arg name="kinectv2_enabled"  value="true"/>
     <arg name="mbzirc_gripper"    value="false"/>
   </include>
+
+  <node pkg="joy" type="joy_node" name="joy_node">
+    <param name="joy" type="string" value="$(arg joy_dev)"/>
+  </node>
+
+  <include file="$(find trex_ur5_moveit)/launch/trex_ur5_planning_execution.launch">
+    <arg name="physical_robot" value="false"/>
+  </include>
+  <node name="move_arm_topic" pkg="trex_control" type="move_arm_topic.py"/>
 
 </launch>
