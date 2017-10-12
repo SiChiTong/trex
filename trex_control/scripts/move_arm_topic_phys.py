@@ -35,10 +35,13 @@ class move_arm_topic():
         self.ready_for_goal = 0
         self.ct = 0
 
-        # Set up ROS subscriber callback routines
-        rospy.Subscriber("/move_group/status", GoalStatusArray, self.cb_stat, queue_size=1)
-        rospy.Subscriber("/move_arm/goal",Twist, self.cb_goal, queue_size=1)
-        #rospy.Subscriber("/move_arm/joint_states",JointState, self.cb_joint, queue_size=1)
+        # Initialize Necessary Variables
+        reference_frame = rospy.get_param("~reference_frame", "/base_link")
+        #reference_frame = "ee_link"
+
+        # Set the target pose from the input
+        self.target_pose = PoseStamped()
+        self.target_pose.header.frame_id = reference_frame
 
         # Set up ROS publishers
 
@@ -62,10 +65,6 @@ class move_arm_topic():
         self.end_effector_link = self.arm.get_end_effector_link()
         rospy.loginfo(self.end_effector_link)
 
-        # Initialize Necessary Variables
-        reference_frame = rospy.get_param("~reference_frame", "/base_link")
-        #reference_frame = "ee_link"
-
         # Set the ur5_arm reference frame accordingly
         self.arm.set_pose_reference_frame(reference_frame)
 
@@ -76,13 +75,14 @@ class move_arm_topic():
         self.arm.set_goal_position_tolerance(0.0001)
         self.arm.set_goal_orientation_tolerance(0.001)
 
-        # Set the target pose from the input
-        self.target_pose = PoseStamped()
-        self.target_pose.header.frame_id = reference_frame
-
         # Get current joint position to use for planning
         rospy.loginfo("Initializing motion planning server.")
         rospy.loginfo("Listening for <Twist> published on </move_arm/goal>")
+
+        # Set up ROS subscriber callback routines
+        rospy.Subscriber("/move_group/status", GoalStatusArray, self.cb_stat, queue_size=1)
+        rospy.Subscriber("/move_arm/goal",Twist, self.cb_goal, queue_size=1)
+        #rospy.Subscriber("/move_arm/joint_states",JointState, self.cb_joint, queue_size=1)
 
     #def cb_joint(self, data):
         #self.jt.joint_state.position = [0,0,0,0,cjs[0],cjs[1],cjs[2],cjs[3],cjs[4],cjs[5],0,0]

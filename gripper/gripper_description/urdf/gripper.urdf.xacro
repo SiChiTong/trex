@@ -62,12 +62,43 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://gripper_description/meshes/base_link.stl"
+          <mesh filename="package://gripper_description/meshes/base_link_old.stl"
             scale="${stl_scale} ${stl_scale} ${stl_scale}"/>
         </geometry>
       </collision>
 
     </link>
+
+
+
+    <link name="${prefix}gripper_motor">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.001"/>
+        <box_inertia m="0.001" x="0.05" y="0.05" z="0.05"/>
+      </inertial>	    
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.05 0.04 0.05"/>
+        </geometry>
+       <material name="Cyan">
+         <color rgba="0.7 0.7 0.7 1.0"/>
+       </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.05 0.04 0.05"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}gripper_motor_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}gripper_motor"/>
+      <origin xyz="0 -0.028 -0.08" rpy="0 0 0"/>
+    </joint>
 
     <joint name="${prefix}base_link_link_1_joint" type="fixed">
       <parent link="${prefix}base_link"/>

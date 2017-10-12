@@ -6,7 +6,7 @@
   <arg name="imu_port" default="/dev/ttyACM2"/>
   <arg name="ur5_enabled" default="true"/>
   <arg name="sawyer_enabled" default="false"/>
-  <arg name="velodyne_enabled" default="false"/>
+  <arg name="velodyne_enabled" default="true"/>
   <arg name="hokuyo_enabled" default="false"/>
   <arg name="ee_mbzirc" default="true"/>
   <arg name="ee_mbzirc_port" default="/dev/ttyUSB0"/>
@@ -52,7 +52,7 @@
 
   <!-- MBZIRC End Effector -->
   <group if="$(arg ee_mbzirc)">
-    <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen">
+    <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="log">
       <param name="video_device" value="$(arg ee_mbzirc_cam_port)"/>
       <param name="image_width" value="$(arg ee_mbzirc_cam_width)" />
       <param name="image_height" value="$(arg ee_mbzirc_cam_height)" />
@@ -88,13 +88,29 @@
     </node>
   </group>
 
+  <!-- Hokuyo LIDAR -->
+  <group if="$(arg hokuyo_enabled)">
+    <node name="hokuyo" pkg="urg_node" type="urg_node">
+      <param name="ip_address" value="192.168.1.10"/>
+      <param name="frame_id" value="hokuyo"/>
+      <param name="angle_min" value="-1.57"/>
+      <param name="angle_max" value="1.57"/>
+      <remap from="/most_intense" to="/scan/close_range"/>
+    </node>
+  </group>
+
+  <!-- Velodyne LIDAR -->
+  <group if="$(arg velodyne_enabled)">
+    <include file="$(find trex_description)/launch/velodyne.launch"/>
+  </group>
+
   <!-- Joystick -->
   <group if="$(arg joystick)">
-    <!--node pkg="trex_control" type="trex_teleop.py" name="teleop_node"/-->
-    <!--node pkg="tele_controller" type="joy_teleop2.py" name="teleop_node"/-->
+    <node pkg="tele_controller" type="joy_teleop2.py" name="teleop_node"/>
     <node pkg="joy" type="joy_node" name="joy_node">
       <param name="joy" type="string" value="$(arg joy_dev)"/>
     </node>
+    <!--node pkg="trex_control" type="trex_teleop.py" name="teleop_node" output="screen"/-->
   </group>
 
   <!-- Publish Odometry -->

@@ -95,4 +95,5 @@
     <maxVel>1.0</maxVel>
     <minDepth>0.00</minDepth>
   </gazebo>
+
 </robot>

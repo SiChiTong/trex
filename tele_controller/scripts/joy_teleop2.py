@@ -15,8 +15,8 @@ class joy_teleop():
 		
 		
 	def callback(self, data):
-        	self.twist.linear.x = data.axes[1]*2.0735
-		self.twist.angular.z = data.axes[0]*6.69
+        	self.twist.linear.x = data.axes[1]*2.0#*2.0735
+		self.twist.angular.z = data.axes[0]*2#*6.69
         	print self.twist
  
 if __name__ == '__main__':

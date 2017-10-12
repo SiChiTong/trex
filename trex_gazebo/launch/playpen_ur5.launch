@@ -19,7 +19,7 @@
     <arg name="velodyne_enabled"  value="false"/>
     <arg name="sick_enabled"      value="true"/>
     <arg name="kinectv2_enabled"  value="true"/>
-    <arg name="mbzirc_gripper"    value="false"/>
+    <arg name="mbzirc_gripper"    value="true"/>
   </include>
 
   <node pkg="joy" type="joy_node" name="joy_node">
