@@ -13,9 +13,9 @@
     <param name="base_global_planner" value="$(arg base_global_planner)"/>
     <param name="base_local_planner" value="$(arg base_local_planner)"/>
     <param name="oscillation_timeout" value="$(arg oscillation_timeout)"/> 
-    <rosparam param="recovery_behaviors">
+    <!--rosparam param="recovery_behaviors">
         [ { name: "backitup_recovery", type: "backitup_recovery/BackItUpRecovery" } ]
-    </rosparam> 
+    </rosparam--> 
     <rosparam file="$(find trex_navigation)/config/planner.yaml" command="load"/>
 
     <!-- observation sources located in costmap_common.yaml -->

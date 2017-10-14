@@ -230,7 +230,7 @@
 <!--############################################sicklms1xx#################################################
 -->
     <xacro:if value="$(arg sick_enabled)">
-      <sick_lms1xx_mount prefix="base" topic="scan"/>
+      <sick_lms1xx_mount prefix="base" topic="scan_raw"/>
       <joint name="laser_mount_joint" type="fixed">
         <origin xyz="0.6 0 0.23"
                 rpy="0 0 0" />

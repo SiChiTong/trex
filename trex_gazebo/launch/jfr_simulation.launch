@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="world_name" default="$(find trex_gazebo)/worlds/target_playpen.world"/>
+  <!--arg name="world_name" default="$(find trex_gazebo)/worlds/mbzirc_arena_task_2.world"/-->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world_name)"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+	
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find trex_description)/urdf/trex.xacro'" />
+
+  <include file="$(find trex_gazebo)/launch/trex_spawn.launch">
+    <arg name="ur5_enabled"       value="false"/>
+    <arg name="velodyne_enabled"  value="false"/>
+    <arg name="sick_enabled"      value="true"/>
+    <arg name="kinectv2_enabled"  value="true"/>
+    <arg name="mbzirc_gripper"    value="false"/>
+  </include>
+
+  <node pkg="laser_filters" type="scan_to_scan_filter_chain"
+      name="laser_filter">
+    <rosparam command="load" file="$(find trex_description)/config/laserscan_filter.yaml" />
+    <remap from="scan" to="scan_raw" />
+    <remap from="scan_filtered" to="scan" />
+  </node>
+
+  <include file="$(find trex_description)/launch/move_base.launch"/>
+  <include file="$(find trex_navigation)/launch/gmapping.launch"/>
+
+  <!--node name="lidar_covariance" pkg="autonomy" type="lidar_covariance.py"/ -->
+
+  <param name="laser_scan_matcher_node/do_compute_covariance" value="1"/>
+  <param name="laser_scan_matcher_node/publish_pose_with_covariance" value="true"/>
+  <param name="laser_scan_matcher_node/publish_pose_with_covariance_stamped" value="true"/>
+  <param name="laser_scan_matcher_node/use_odom" value="true"/>
+  <node pkg="laser_scan_matcher" type="laser_scan_matcher_node"
+    name="laser_scan_matcher_node" output="screen">
+    <param name="max_iterations" value="10"/>
+    <param name="fixed_frame" value = "odom"/>
+  </node>
+  <node pkg="autonomy" type="findbox.py" name="findbox"/>
+  <node pkg="autonomy" type="target_odom.py" name="target_odom"/>
+  <node pkg="autonomy" type="autonomous.py" name="autonomous"/>
+  <node pkg="autonomy" type="lidar_covariance.py" name="lidar_covariance"/>
+
+</launch>
