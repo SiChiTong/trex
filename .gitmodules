@@ -1,9 +1,6 @@
 [submodule "laser_pipeline"]
 	path = laser_pipeline
 	url = https://github.com/johodges/laser_pipeline
-[submodule "kuri_mbzirc_sim"]
-	path = kuri_mbzirc_sim
-	url = https://github.com/johodges/kuri_mbzirc_sim
 [submodule "scan_tools"]
 	path = scan_tools
 	url = https://github.com/ccny-ros-pkg/scan_tools
