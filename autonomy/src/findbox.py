@@ -66,11 +66,12 @@ class findbox():
         rospy.Subscriber('/odometry/filtered',Odometry, self.cb_odom)
         self.bearing_pub = rospy.Publisher("/detection",numpy_msg(Floats), queue_size=1)
         self.bridge = CvBridge()
-        self.dist_min = 0.8
-        self.dist_max = 1.2 # 1m is real target, 41in for height
+        self.dist_min = 0.25
+        self.dist_max = 2.0 # 1m is real target, 41in for height
         self.ylen_lim = 4
         self.ang_min = -1.57
         self.ang_max = 1.57
+        self.R = None
 
         self.arena_xpos = 100 #rospy.get_param('arena_xpos')
         self.arena_xneg = -100 #rospy.get_param('arena_xneg')
@@ -158,7 +159,7 @@ class findbox():
             # Check if there are at least 4 points in an object (reduces noise)
             ylen = len(y2[i])-0
             dist2_sum = np.sum(dist2[i][1:-2])
-            if ylen > self.ylen_lim and dist2_sum > self.dist_min and dist2_sum < self.dist_max and np.median(ran2[i]) <= 25:
+            if ylen > self.ylen_lim and dist2_sum > self.dist_min and dist2_sum < self.dist_max and np.median(ran2[i]) <= 25 and self.R is not None:
                 print(dist2_sum,np.shape(ran2[i]),np.median(ran2[i][1:-2]))
                 [x_coord_glo,y_coord_glo] = np.dot(self.R,[x_coord2[i],y_coord2[i]])
                 x_coord_glo = self.x0+x_coord_glo

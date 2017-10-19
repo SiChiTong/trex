@@ -32,7 +32,7 @@ trex_velocity_controller:
       has_velocity_limits    : true
       max_velocity           : 3.194  # m/s
       has_acceleration_limits: true
-      max_acceleration       : 3.5   # m/s^2
+      max_acceleration       : 2   # m/s^2
   angular:
     z:
       has_velocity_limits    : true

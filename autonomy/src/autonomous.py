@@ -111,7 +111,7 @@ class mbzirc_c2_auto():
 
         # Initialize parameters
         self.rest_time = 0.1            # Minimum pause at each location
-        self.stalled_threshold = 5000   # Loops before stall
+        self.stalled_threshold = 50000   # Loops before stall
         self.current_waypoint = 0       # Current waypoint
         self.stall_counter = 0          # Stall counter
         self.detect_counter = 0         # Detection counter
@@ -252,6 +252,8 @@ class mbzirc_c2_auto():
                     rospy.sleep(0.1)
                     rot_cmd(0.25,0.25)
                     rospy.loginfo("Resending goal.")
+                    print "Resending goal: "
+                    print self.goal
                     self.move_base.send_goal(self.goal)
                     rospy.sleep(1)
                     self.ct_move = 0

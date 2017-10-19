@@ -1,0 +1,1 @@
+rosbag record jfr/robot/correction odometry/filtered target/camera_color target/camera_geom target/lidar usb_cam/image_raw scan jfr/target/position

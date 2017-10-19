@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="world_name" default="$(find trex_gazebo)/worlds/target_playpen.world"/>
+  <arg name="world_name" default="$(find trex_gazebo)/worlds/target_playpen_2.world"/>
   <!--arg name="world_name" default="$(find trex_gazebo)/worlds/mbzirc_arena_task_2.world"/-->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(arg world_name)"/>
@@ -14,11 +14,11 @@
   <param name="robot_description" command="$(find xacro)/xacro.py '$(find trex_description)/urdf/trex.xacro'" />
 
   <include file="$(find trex_gazebo)/launch/trex_spawn.launch">
-    <arg name="ur5_enabled"       value="false"/>
+    <arg name="ur5_enabled"       value="true"/>
     <arg name="velodyne_enabled"  value="false"/>
     <arg name="sick_enabled"      value="true"/>
-    <arg name="kinectv2_enabled"  value="true"/>
-    <arg name="mbzirc_gripper"    value="false"/>
+    <arg name="kinectv2_enabled"  value="false"/>
+    <arg name="mbzirc_gripper"    value="true"/>
   </include>
 
   <node pkg="laser_filters" type="scan_to_scan_filter_chain"
@@ -36,15 +36,27 @@
   <param name="laser_scan_matcher_node/do_compute_covariance" value="1"/>
   <param name="laser_scan_matcher_node/publish_pose_with_covariance" value="true"/>
   <param name="laser_scan_matcher_node/publish_pose_with_covariance_stamped" value="true"/>
-  <param name="laser_scan_matcher_node/use_odom" value="true"/>
+  <param name="laser_scan_matcher_node/use_odom" value="false"/>
   <node pkg="laser_scan_matcher" type="laser_scan_matcher_node"
     name="laser_scan_matcher_node" output="screen">
     <param name="max_iterations" value="10"/>
     <param name="fixed_frame" value = "odom"/>
+    <remap from="/pose_with_covariance_stamped" to="/jfr/robot/pos/lidar"/>
+    <param name="laser_scan_matcher_node/publish_tf" value="false"/>
   </node>
   <node pkg="autonomy" type="findbox.py" name="findbox"/>
-  <node pkg="autonomy" type="target_odom.py" name="target_odom"/>
-  <node pkg="autonomy" type="autonomous.py" name="autonomous"/>
-  <node pkg="autonomy" type="lidar_covariance.py" name="lidar_covariance"/>
+  <!--node pkg="autonomy" type="autonomous.py" name="autonomous"/-->
+  <node pkg="autonomy" type="target_localization.py" name="target_localization"/>
+
+  <!--node pkg="autonomy" type="target_odom.py" name="target_odom"/>
+
+  <node pkg="autonomy" type="lidar_covariance.py" name="lidar_covariance"/-->
+
+  <node name="color_proc" type="color_proc" pkg="camera_proc" output="screen"/>
+  <node pkg="autonomy" type="lidar_detect.py" name="lidar_detect"/>
+  <node pkg="autonomy" type="robot_correction.py" name="robot_correction"/>
+  <!--node name="image_view" type="image_view" pkg="image_view">
+    <remap from="image" to="/usb_cam/image_raw"/>
+  </node-->
 
 </launch>

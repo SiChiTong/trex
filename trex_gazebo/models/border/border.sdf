@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  <model name="border">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://border/meshes/border.DAE</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <cast_shadows>true</cast_shadows>
+        <geometry>
+          <mesh>
+            <uri>model://border/meshes/border.DAE</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://border/materials/scripts</uri>
+            <uri>model://border/materials/textures</uri>
+            <name>vrc/border</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
