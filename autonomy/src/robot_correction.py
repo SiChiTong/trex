@@ -121,7 +121,9 @@ class robot_correction():
         #print(robot_cov)
         #print("lidar_cov:")
         #print(lidar_cov)
+
         gain = np.dot(np.dot(robot_cov,c_mat),np.linalg.inv(np.dot(np.dot(c_mat,robot_cov),c_mat.T)+lidar_cov))
+
         #print("gain")
         #print(gain)
         gain[np.isnan(gain)] = 10**-20
@@ -130,9 +132,11 @@ class robot_correction():
         new_cov = np.reshape(new_cov,(9,))
         new_state = robot_state+np.dot(gain,(lidar_state-np.dot(c_mat,robot_state)))
         #print(lidar_state,robot_state,new_state)
-
+        #print('robot_cov\t lidar_cov\t gain\t\t new_cov\t new_x')
+        #print('%.4e\t%.4e\t%.4e\t%.4e\t%.4f'%(robot_cov[0][0],lidar_cov[0][0],gain[0][0],new_cov[0],new_state[0]))
         output = self.state2pose(new_state, new_cov)
         self.cov_publisher.publish(output)
+        rospy.sleep(0.02)
         self.robot_cov = None
         self.lidar_cov = None
 
