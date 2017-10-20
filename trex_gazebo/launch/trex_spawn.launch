@@ -62,6 +62,6 @@
   </group>
 
   <node name="trex_spawn" pkg="gazebo_ros" type="spawn_model"
-    args="-x 0 -z 0 -y 0 -Y 0 -urdf -param robot_description -model trex -J right_j0 3.14"/>
+    args="-x 0 -z 0.05 -y 0 -Y 0 -urdf -param robot_description -model trex -J right_j0 3.14"/>
 
 </launch>

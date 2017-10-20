@@ -46,6 +46,7 @@ class target_localization():
         rospy.Subscriber('/target/camera_color',PoseWithCovarianceStamped, self.cb_cam_color)
         rospy.Subscriber('/target/camera_geom',PoseWithCovarianceStamped, self.cb_cam_geom)
         rospy.Subscriber('/jfr/robot/correction',PoseWithCovarianceStamped, self.cb_robot)
+        #rospy.Subscriber('/odom',Odometry, self.cb_robot)
         self.old_cov = np.identity(2)+10**-3
         self.old_target = [100,100]
         #self.old_cov = dict({'lidar':np.zeros((36,))+1,'camc':np.zeros((36,))+1,'camg':np.zeros((36,))+1})
@@ -53,7 +54,10 @@ class target_localization():
         while not rospy.is_shutdown():
             if self.lidar_cov is not None and self.camc_cov is not None and self.camg_cov is not None and self.robot_state is not None:
                 #print("HiHi")
-                self.fusion(self.lidar_state, np.array(self.lidar_cov), self.lidar_loc, self.camc_state, np.array(self.camc_cov), self.camc_loc, self.camg_state, np.array(self.camg_cov), self.camg_loc, self.robot_state, self.robot_cov)
+                if self.lidar_loc+self.camc_loc+self.camg_loc > 0.2:
+                    self.fusion(self.lidar_state, np.array(self.lidar_cov), self.lidar_loc, self.camc_state, np.array(self.camc_cov), self.camc_loc, self.camg_state, np.array(self.camg_cov), self.camg_loc, self.robot_state, self.robot_cov)
+                else:
+                    pass
             else:
                 rospy.sleep(0.01)
 

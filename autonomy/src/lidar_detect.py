@@ -76,7 +76,7 @@ class lidar_detect():
         self.ylen_lim = 4
         self.ang_min = -1.57
         self.ang_max = 1.57
-        self.scan_dist_thresh = 0.5  # Distance threshold to split obj into 2 obj.
+        self.scan_dist_thresh = 5.0  # Distance threshold to split obj into 2 obj.
 
         # Define uncertainty parameters
         self.xmin = 0.0
@@ -88,7 +88,7 @@ class lidar_detect():
         self.locmin = 0.0
         self.locmax = 1.0
         self.loc = 0
-        self.loc_thresh = 0.4
+        self.loc_thresh = 0.2
 
         # Find transformation from laser to base_link
         tf_buffer = tf2_ros.Buffer(rospy.Duration(1200.0)) #tf buffer length

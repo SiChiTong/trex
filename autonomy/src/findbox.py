@@ -66,8 +66,8 @@ class findbox():
         rospy.Subscriber('/odometry/filtered',Odometry, self.cb_odom)
         self.bearing_pub = rospy.Publisher("/detection",numpy_msg(Floats), queue_size=1)
         self.bridge = CvBridge()
-        self.dist_min = 0.25
-        self.dist_max = 2.0 # 1m is real target, 41in for height
+        self.dist_min = 0.75
+        self.dist_max = 1.5 # 1m is real target, 41in for height
         self.ylen_lim = 4
         self.ang_min = -1.57
         self.ang_max = 1.57
@@ -79,8 +79,8 @@ class findbox():
         self.arena_yneg = 100 #rospy.get_param('arena_yneg')
 
         self.rate = rospy.Rate(10)
-        self.scan_dist_thresh = 0.5  # Distance threshold to split obj into 2 obj.
-        self.plot_data = False
+        self.scan_dist_thresh = 5.0  # Distance threshold to split obj into 2 obj.
+        self.plot_data = True
         self.image_output = rospy.Publisher("/output/keyevent_image",Image, 
             queue_size=1)
 
@@ -222,8 +222,8 @@ class findbox():
             plt.plot([self.arena_yneg,self.arena_ypos],[self.arena_xpos,self.arena_xpos],'k-',linewidth=4.0)
             # Show UGV
             plt.plot(self.y0,self.x0,'mo',markersize=10.0)
-            #plt.xlim([-20,20])
-            #plt.ylim([-10,60])
+            plt.xlim([-20,20])
+            plt.ylim([-10,60])
             plt.gca().invert_xaxis()
             plt.xlabel('Left of robot [m] ')
             plt.ylabel('Front of robot [m]')
