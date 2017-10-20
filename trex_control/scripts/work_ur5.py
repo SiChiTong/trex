@@ -8,7 +8,7 @@ from trajectory_msgs.msg import *
 JOINT_NAMES = ['ur5_arm_shoulder_pan_joint', 'ur5_arm_shoulder_lift_joint', 'ur5_arm_elbow_joint',
                'ur5_arm_wrist_1_joint', 'ur5_arm_wrist_2_joint', 'ur5_arm_wrist_3_joint']
 
-Q1 = [-1.57,-0.78,-2.35,0,1.57,0]
+Q1 = [-1.57,-0.3,-2.79,-0.1,1.57,0]
 
 client = None
 
