@@ -126,7 +126,7 @@ class robot_correction():
         #print(gain)
         gain[np.isnan(gain)] = 10**-20
         gain = np.reshape(gain,(3,3))
-        new_cov = (np.identity(3)-np.dot(gain,c_mat))*np.reshape(robot_cov,(3,3))
+        new_cov = np.dot((np.identity(3)-np.dot(gain,c_mat)),np.reshape(robot_cov,(3,3)))
         new_cov = np.reshape(new_cov,(9,))
         new_state = robot_state+np.dot(gain,(lidar_state-np.dot(c_mat,robot_state)))
         #print(lidar_state,robot_state,new_state)
