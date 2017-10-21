@@ -71,12 +71,13 @@ class lidar_detect():
         self.target_pub = rospy.Publisher('/target/lidar',PoseWithCovarianceStamped, queue_size=1)
 
         # LiDAR segmentation magic numbers
-        self.dist_min = 0.8
-        self.dist_max = 1.2 # 1m is real target, 41in for height
-        self.ylen_lim = 4
+        self.dist_min = 0.25
+        self.dist_max = 2.0 # 1m is real target, 41in for height
+        self.ylen_lim = 2
         self.ang_min = -1.57
         self.ang_max = 1.57
         self.scan_dist_thresh = 5.0  # Distance threshold to split obj into 2 obj.
+        self.max_range = 60
 
         # Define uncertainty parameters
         self.xmin = 0.0
@@ -88,7 +89,7 @@ class lidar_detect():
         self.locmin = 0.0
         self.locmax = 1.0
         self.loc = 0
-        self.loc_thresh = 0.2
+        self.loc_thresh = 0.1
 
         # Find transformation from laser to base_link
         tf_buffer = tf2_ros.Buffer(rospy.Duration(1200.0)) #tf buffer length
@@ -160,11 +161,12 @@ class lidar_detect():
         ran2 = np.split(data.ranges,np.argwhere(dist>self.scan_dist_thresh))
 
         bearing = np.array([0,0,0,0], dtype=np.float32)
+        self.loc = 0
         for i in range(len(y2)):
             # Check if there are at least 4 points in an object (reduces noise)
             ylen = len(y2[i])-0
             dist2_sum = np.sum(dist2[i][1:-2])
-            if ylen > self.ylen_lim and dist2_sum > self.dist_min and dist2_sum < self.dist_max and np.median(ran2[i]) <= 25:
+            if ylen > self.ylen_lim and dist2_sum > self.dist_min and dist2_sum < self.dist_max and np.median(ran2[i]) <= self.max_range:
                 x_pt = np.median(x_coord2[i])
                 y_pt = np.median(y_coord2[i])
                 if True:
@@ -183,21 +185,18 @@ class lidar_detect():
                         new_p = do_transform_point(p, self.R)
                         u = (dist-self.xmin)/(self.xmax-self.xmin)*(self.umax-self.umin)+self.umin
                         self.uvar = np.nanstd(u)**2
-                        self.loc = (1-(dis-self.xmin)/(self.xmax-self.xmin))*(self.locmax-self.locmin)+self.locmin
+                        self.loc = 2*np.exp(-dis/20)
+                        #self.loc = (1-(dis-self.xmin)/(self.xmax-self.xmin))*(self.locmax-self.locmin)+self.locmin
                         self.target_pose.pose.pose.position.x = new_p.point.x
                         self.target_pose.pose.pose.position.y = new_p.point.y
                         self.target_pose.pose.pose.position.z = self.loc
                         cov = self.target_pose.pose.covariance
                         if self.loc > 0.1:
-                            self.target_pose.pose.covariance[0] = 0.01*dis #self.uvar
-                            self.target_pose.pose.covariance[7] = dis #self.uvar # Tomo asked me to change this value from (0.1*d) to be (1*d) [Tamer]
+                            self.target_pose.pose.covariance[0] = 0.01*0.01/(1+self.loc) #self.uvar
+                            self.target_pose.pose.covariance[7] = 0.01*1.0/(1+self.loc) #self.uvar # Tomo asked me to change this value from (0.1*d) to be (1*d) [Tamer]
                         else:
-                            self.target_pose.pose.covariance[0] = 10**6
-                            self.target_pose.pose.covariance[7] = 10**6
-                        h = std_msgs.msg.Header()
-                        h.stamp = rospy.Time.now()
-                        h.frame_id = 'base_link'
-                        self.target_pose.header = h
+                            self.target_pose.pose.covariance[0] = 10**0
+                            self.target_pose.pose.covariance[7] = 10**0
                         print(dis,self.loc)
                     else:
                         pass
@@ -208,6 +207,13 @@ class lidar_detect():
             else:
                 pass
                 #print('fail3',ylen,dist2_sum)
+        h = std_msgs.msg.Header()
+        h.stamp = rospy.Time.now()
+        h.frame_id = 'base_link'
+        self.target_pose.header = h
+        if self.loc <= 0.1:
+            self.target_pose.pose.covariance[0] = 10**0
+            self.target_pose.pose.covariance[7] = 10**0
 
         # Publish bearing to ROS on topic /detection
         self.target_pub.publish(self.target_pose)

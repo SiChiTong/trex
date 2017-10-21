@@ -54,7 +54,7 @@ import std_msgs.msg
 class robot_correction():
     def __init__(self):
         rospy.init_node('robot_correction', anonymous=True)
-        self.cov_publisher = rospy.Publisher('/jfr/robot/correction',PoseWithCovarianceStamped)
+        self.cov_publisher = rospy.Publisher('/jfr/robot/correction',PoseWithCovarianceStamped,queue_size=1)
         self.robot_cov = None
         self.lidar_cov = None
         rospy.Subscriber('/odometry/filtered',Odometry, self.cb_rl)

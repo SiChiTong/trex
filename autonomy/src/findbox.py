@@ -66,12 +66,13 @@ class findbox():
         rospy.Subscriber('/odometry/filtered',Odometry, self.cb_odom)
         self.bearing_pub = rospy.Publisher("/detection",numpy_msg(Floats), queue_size=1)
         self.bridge = CvBridge()
-        self.dist_min = 0.75
-        self.dist_max = 1.5 # 1m is real target, 41in for height
-        self.ylen_lim = 4
+        self.dist_min = 0.1
+        self.dist_max = 2.0 # 1m is real target, 41in for height
+        self.ylen_lim = 2
         self.ang_min = -1.57
         self.ang_max = 1.57
         self.R = None
+        self.max_range = 60
 
         self.arena_xpos = 100 #rospy.get_param('arena_xpos')
         self.arena_xneg = -100 #rospy.get_param('arena_xneg')
@@ -80,7 +81,7 @@ class findbox():
 
         self.rate = rospy.Rate(10)
         self.scan_dist_thresh = 5.0  # Distance threshold to split obj into 2 obj.
-        self.plot_data = True
+        self.plot_data = False
         self.image_output = rospy.Publisher("/output/keyevent_image",Image, 
             queue_size=1)
 
@@ -159,7 +160,7 @@ class findbox():
             # Check if there are at least 4 points in an object (reduces noise)
             ylen = len(y2[i])-0
             dist2_sum = np.sum(dist2[i][1:-2])
-            if ylen > self.ylen_lim and dist2_sum > self.dist_min and dist2_sum < self.dist_max and np.median(ran2[i]) <= 25 and self.R is not None:
+            if ylen > self.ylen_lim and dist2_sum > self.dist_min and dist2_sum < self.dist_max and np.median(ran2[i]) <= self.max_range and self.R is not None:
                 print(dist2_sum,np.shape(ran2[i]),np.median(ran2[i][1:-2]))
                 [x_coord_glo,y_coord_glo] = np.dot(self.R,[x_coord2[i],y_coord2[i]])
                 x_coord_glo = self.x0+x_coord_glo
@@ -200,7 +201,7 @@ class findbox():
                     y_pt = np.median(y_coord_glo)
                     x_pt = np.median(x_coord_glo)
                     ang = np.median(y2[i])
-                    if np.median(ran2[i]) > 25: #y_pt > self.arena_ypos or y_pt < self.arena_yneg or x_pt > self.arena_xpos or x_pt < self.arena_xneg:
+                    if np.median(ran2[i]) > self.max_range: #y_pt > self.arena_ypos or y_pt < self.arena_yneg or x_pt > self.arena_xpos or x_pt < self.arena_xneg:
                         #print "x_mn, x_mx, x_pt: ", self.arena_xneg, self.arena_xpos, x_pt
                         #print "y_mn, y_mx, y_pt: ", self.arena_yneg, self.arena_ypos, y_pt
                         #plt.plot(y_pt,x_pt,'co',markersize=10.0)

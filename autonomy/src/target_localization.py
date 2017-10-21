@@ -54,7 +54,7 @@ class target_localization():
         while not rospy.is_shutdown():
             if self.lidar_cov is not None and self.camc_cov is not None and self.camg_cov is not None and self.robot_state is not None:
                 #print("HiHi")
-                if self.lidar_loc+self.camc_loc+self.camg_loc > 0.2:
+                if self.lidar_loc+self.camc_loc+self.camg_loc >= 0.1:
                     self.fusion(self.lidar_state, np.array(self.lidar_cov), self.lidar_loc, self.camc_state, np.array(self.camc_cov), self.camc_loc, self.camg_state, np.array(self.camg_cov), self.camg_loc, self.robot_state, self.robot_cov)
                 else:
                     pass
