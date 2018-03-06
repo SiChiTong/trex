@@ -64,11 +64,11 @@ class lidar_detect():
     def __init__(self):
 
         # Initialize ROS node
-        rospy.init_node('lidar_detect', anonymous=True)
+        rospy.init_node('camg_detect', anonymous=True)
         self.rate = rospy.Rate(10)
 
         # Establish publisher
-        self.target_pub = rospy.Publisher('/target/lidar',PoseWithCovarianceStamped, queue_size=1)
+        self.target_pub = rospy.Publisher('/target/camera_geom',PoseWithCovarianceStamped, queue_size=1)
 
         # LiDAR segmentation magic numbers
         self.dist_min = 0.25
@@ -97,18 +97,15 @@ class lidar_detect():
         tf_buffer = tf2_ros.Buffer(rospy.Duration(1200.0)) #tf buffer length
         tf_listener = tf2_ros.TransformListener(tf_buffer)
         self.R = None
-        self.physical_robot = False
         while self.R is None:
             try:
-                if self.physical_robot:
-                    self.R = tf_buffer.lookup_transform("velodyne_new", "base_link", rospy.Time(0), rospy.Duration(1.0))
-                else:
-                    self.R = tf_buffer.lookup_transform("base_laser", "base_link", rospy.Time(0), rospy.Duration(1.0))
+                self.R = tf_buffer.lookup_transform("velodyne_new", "base_link", rospy.Time(0), rospy.Duration(1.0))
             except:
                 print("Waiting on laser to base_link tf.")
                 rospy.sleep(1)
 
         # Establish subscribers
+        self.physical_robot = False
         if self.physical_robot:
             rospy.Subscriber("/scan/long_range",sensor_msgs.msg.LaserScan,self.cb_scan, queue_size=1)
         else:
@@ -133,8 +130,8 @@ class lidar_detect():
         if self.physical_robot:
             y = np.arange(scan_min,scan_max,scan_inc)
         else:
-            #y = np.arange(scan_min,scan_max,scan_inc)
-            y = np.arange(scan_min,scan_max+0.01*scan_inc,scan_inc)
+            y = np.arange(scan_min,scan_max,scan_inc)
+            #y = np.arange(scan_min,scan_max+0.01*scan_inc,scan_inc)
 
         # Pre-compute trig functions of angles
         ysin = np.sin(y)
@@ -183,7 +180,7 @@ class lidar_detect():
                     dis = ((x_pt**2+y_pt**2))**0.5
 
                     if ang > self.ang_min and ang < self.ang_max:
-                        self.loc = 2*np.exp(-dis/20)
+                        self.loc = 0.6*np.exp(-dis/20)
                         c_mat = [[1,0],[0,1]]
                         obs_cov = [[1/(1+10.0*self.loc),0],[0,1/(1+10.0*self.loc)]]
                         obs_state = np.array([x_pt,y_pt])
@@ -210,7 +207,6 @@ class lidar_detect():
                         new_p.point.z = 0.0
                         u = (dist-self.xmin)/(self.xmax-self.xmin)*(self.umax-self.umin)+self.umin
                         self.uvar = np.nanstd(u)**2
-
                         #self.loc = (1-(dis-self.xmin)/(self.xmax-self.xmin))*(self.locmax-self.locmin)+self.locmin
                         self.target_pose.pose.pose.position.x = new_p.point.x
                         self.target_pose.pose.pose.position.y = new_p.point.y

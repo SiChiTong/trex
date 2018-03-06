@@ -48,7 +48,7 @@ import math
 import tf
 import time
 import scipy.linalg as linalg
-from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped, PointStamped
 import std_msgs.msg
 
 class ocs_logger():
@@ -60,20 +60,31 @@ class ocs_logger():
         self.lidars = np.array([0,0,0])
         self.rbcs = np.array([0,0,0])
         self.tgs = np.array([0,0,0])
+        self.tge = np.array([0.0])
+        self.rbe = np.array([0.0])
+        self.loc_l = np.array([0.0])
+        self.loc_c = np.array([0.0])
+        self.loc_g = np.array([0.0])
         rospy.Subscriber('/odom',Odometry, self.cb_odom)
         rospy.Subscriber('/odometry/filtered',Odometry, self.cb_rl)
         rospy.Subscriber('/jfr/robot/pos/lidar',PoseWithCovarianceStamped, self.cb_lidar)
         rospy.Subscriber('/jfr/robot/correction',PoseWithCovarianceStamped, self.cb_rbc)
         rospy.Subscriber('/jfr/target/position',PoseWithCovarianceStamped, self.cb_tg)
+        rospy.Subscriber('/target/lidar',PoseWithCovarianceStamped, self.cb_loc_l)
+        rospy.Subscriber('/target/camera_color',PoseWithCovarianceStamped, self.cb_loc_c)
+        rospy.Subscriber('/target/camera_geom',PoseWithCovarianceStamped, self.cb_loc_g)
+        rospy.Subscriber('/jfr/target/entropy',PointStamped, self.cb_tg_entropy)
+        rospy.Subscriber('/jfr/robot/entropy',PointStamped, self.cb_rb_entropy)
         while not rospy.is_shutdown():
             self.print_recent()
-            rospy.sleep(0.02)
+            rospy.sleep(1.0)
 
     def print_recent(self):
-        print("State\tOdom\t\tOdomFil\t\tLidar\t\tRobot\t\tTarget")
-        print("x\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f"%(self.odoms[0],self.rls[0],self.lidars[0],self.rbcs[0],self.tgs[0]))
-        print("y\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f"%(self.odoms[1],self.rls[1],self.lidars[1],self.rbcs[1],self.tgs[1]))
-        print("z\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f"%(self.odoms[2],self.rls[2],self.lidars[2],self.rbcs[2],self.tgs[2]))
+        print("State\tOdom\tOdomF\tLidar\tRobot\tTarget")
+        print("x\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f"%(self.odoms[0],self.rls[0],self.lidars[0],self.rbcs[0],self.tgs[0]))
+        print("y\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f"%(self.odoms[1],self.rls[1],self.lidars[1],self.rbcs[1],self.tgs[1]))
+        print("z\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f"%(self.odoms[2],self.rls[2],self.lidars[2],self.rbcs[2],self.tgs[2]))
+        print("H\t%.2f\t%.2f\t%.2f\t%.1e\t%.1e"%(self.loc_l,self.loc_c,self.loc_g,self.rbe,self.tge))
 
     def cb_odom(self, data):
         self.odoms, self.odomc = self.pose2state(data.pose)
@@ -89,6 +100,21 @@ class ocs_logger():
 
     def cb_tg(self, data):
         self.tgs, self.tgc = self.pose2state(data.pose)
+
+    def cb_tg_entropy(self, data):
+        self.tge = data.point.x
+
+    def cb_rb_entropy(self, data):
+        self.rbe = data.point.x
+
+    def cb_loc_l(self, data):
+        self.loc_l = data.pose.pose.position.z
+
+    def cb_loc_c(self, data):
+        self.loc_c = data.pose.pose.position.z
+
+    def cb_loc_g(self, data):
+        self.loc_g = data.pose.pose.position.z
 
     def pose2state(self, pose):
         oppp = pose.pose.position

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="rosbag" type="play" name="player" output="log" args="--clock $(find autonomy)/data/velodyne_new3.bag -s 0">
+    <remap from="/tf" to="/tf_old"/>
+  </node>
+  <node name="velodyne_new" pkg="autonomy" type="tf_broadcaster.py"/>
+  <!--node name="rviz" pkg="rviz" type="rviz"/-->
+
+  <include file="$(find but_velodyne_proc)/launch/laserscan_node.launch">
+    <arg name="min_z" value="-0.05"/>
+    <arg name="max_z" value="5.0"/>
+    <arg name="min_range" value="0.1"/>
+    <arg name="frame_id" value="base_link"/>
+    <arg name="topic" value="/scan"/>
+    <arg name="node_name" value="autonomy_scan"/>
+    <arg name="angular_res" value="0.5" />
+  </include>
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find trex_description)/urdf/trex.xacro'" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+
+  <param name="laser_scan_matcher_node/do_compute_covariance" value="1"/>
+  <param name="laser_scan_matcher_node/publish_pose_with_covariance_stamped" value="true"/>
+  <param name="laser_scan_matcher_node/use_odom" value="true"/>
+  <node pkg="laser_scan_matcher" type="laser_scan_matcher_node"
+    name="laser_scan_matcher_node" output="screen">'
+    <param name="max_iterations" value="10"/>
+    <param name="fixed_frame" value = "odom"/>
+    <remap from="/odom" to="/odometry/filtered"/>
+    <remap from="/pose_with_covariance_stamped" to="/jfr/robot/pos/lidar"/>
+    <param name="laser_scan_matcher_node/publish_tf" value="false"/>
+  </node>
+
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" >
+    <rosparam command="load" file="$(find trex_control)/config/localization_reconstruct.yaml" />
+  </node>
+
+  <node pkg="autonomy" type="findbox.py" name="findbox"/>
+  <node name="color_proc" type="color_proc" pkg="camera_proc" output="screen"/>
+  <node pkg="autonomy" type="lidar_detect.py" name="lidar_detect"/>
+  <!--node pkg="autonomy" type="camc_detect.py" name="camc_detect"/>
+  <node pkg="autonomy" type="camg_detect.py" name="camg_detect"/-->
+  <node pkg="autonomy" type="sim_loc.py" name="simult_local" output="screen"/>
+  <!--node pkg="autonomy" type="ocs_logger.py" name="ocs_logger" output="screen"/-->
+</launch>

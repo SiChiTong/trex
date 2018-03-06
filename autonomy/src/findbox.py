@@ -66,7 +66,7 @@ class findbox():
         rospy.Subscriber('/odometry/filtered',Odometry, self.cb_odom)
         self.bearing_pub = rospy.Publisher("/detection",numpy_msg(Floats), queue_size=1)
         self.bridge = CvBridge()
-        self.dist_min = 0.1
+        self.dist_min = 0.25
         self.dist_max = 2.0 # 1m is real target, 41in for height
         self.ylen_lim = 2
         self.ang_min = -1.57
@@ -80,8 +80,8 @@ class findbox():
         self.arena_yneg = 100 #rospy.get_param('arena_yneg')
 
         self.rate = rospy.Rate(10)
-        self.scan_dist_thresh = 5.0  # Distance threshold to split obj into 2 obj.
-        self.plot_data = False
+        self.scan_dist_thresh = 15.0  # Distance threshold to split obj into 2 obj.
+        self.plot_data = True
         self.image_output = rospy.Publisher("/output/keyevent_image",Image, 
             queue_size=1)
 
@@ -113,8 +113,9 @@ class findbox():
 
         # Build angle array
         if self.physical_robot:
-            y = np.arange(scan_min,scan_max,scan_inc)-1.57
+            y = np.arange(scan_min,scan_max,scan_inc)
         else:
+            #y = np.arange(scan_min,scan_max,scan_inc)
             y = np.arange(scan_min,scan_max+0.01*scan_inc,scan_inc)
 
         # Pre-compute trig functions of angles

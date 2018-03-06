@@ -30,8 +30,9 @@ from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
 from nav_msgs.msg import Odometry
 import tf
-from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped, PointStamped
 import std_msgs.msg
+import math
 
 class simultaneous_localization():
     def __init__(self):
@@ -39,6 +40,8 @@ class simultaneous_localization():
 
         self.target_pub = rospy.Publisher('/jfr/target/position',PoseWithCovarianceStamped, queue_size=1)
         self.robot_pub = rospy.Publisher('/jfr/robot/correction',PoseWithCovarianceStamped,queue_size=1)
+        self.target_H_pub = rospy.Publisher('/jfr/target/entropy',PointStamped,queue_size=1)
+        self.robot_H_pub = rospy.Publisher('/jfr/robot/entropy',PointStamped,queue_size=1)
         self.lidar_cov = None
         self.camc_cov = None
         self.camg_cov = None
@@ -48,8 +51,8 @@ class simultaneous_localization():
         rospy.Subscriber('/target/camera_color',PoseWithCovarianceStamped, self.cb_cam_color)
         rospy.Subscriber('/target/camera_geom',PoseWithCovarianceStamped, self.cb_cam_geom)
         rospy.Subscriber('/jfr/robot/pos/lidar',PoseWithCovarianceStamped, self.cb_lm)
-        #rospy.Subscriber('/odometry/filtered',Odometry, self.cb_rl)
-        rospy.Subscriber('/odom',Odometry, self.cb_rl)
+        rospy.Subscriber('/odometry/filtered',Odometry, self.cb_rl)
+        #rospy.Subscriber('/odom',Odometry, self.cb_rl)
         self.first_cov = np.identity(5)+10**0
         self.old_cov = self.first_cov.copy()
         self.old_state = [0,0,0,100,100]
@@ -148,13 +151,13 @@ class simultaneous_localization():
 
     def cb_rl(self, data):
         self.rl_state, self.rl_cov = self.pose2state_robot(data.pose)
-        self.rl_cov = self.rl_cov*10**1
+        self.rl_cov = self.rl_cov*10**-5
         self.rl_pose = data.pose
 
     def cb_lm(self, data):
         self.lm_state, self.lm_cov = self.pose2state_robot(data.pose)
         self.lm_pose = data.pose
-        self.lm_cov = self.lm_cov*10**1
+        self.lm_cov = self.lm_cov
 
     def rotation_matrix(self, yaw):
         R = np.array([[np.cos(yaw),-np.sin(yaw)],[np.sin(yaw),np.cos(yaw)]])
@@ -234,6 +237,20 @@ class simultaneous_localization():
         #print("obs,pred",obs_state,pred_state)
         return new_state
         
+    def calculate_entropy(self, cov):
+        cov = np.array(cov)*10**10
+        H = PointStamped()
+        h = std_msgs.msg.Header()
+        h.stamp = rospy.Time.now()
+        h.frame_id = 'odom'
+        H.header = h
+        n = float(cov.shape[0])
+        inner = 2*math.pi*math.e
+        det = np.linalg.det(cov)
+        H.point.x = np.log(np.power(inner**n*det,0.5))
+        #print(n,np.power(inner**n*det,0.5))
+        return H
+
 
     def fusion(self):
         print_flag = False
@@ -245,6 +262,15 @@ class simultaneous_localization():
         lidar_cov = self.lidar_cov.copy()
         camc_cov = self.camc_cov.copy()
         camg_cov = self.camg_cov.copy()
+        """
+        if lidar_cov[0,0] != 1:
+            lidar_cov[0,0] = lidar_cov[0,0]*10**-2
+            lidar_cov[1,1] = lidar_cov[0,0]*10**-5
+        if camc_cov[0,0] != 1:
+            camc_cov[1,1] = camc_cov[1,1]*10**-8
+        if camg_cov[0,0] != 1:
+            camc_cov[1,1] = camc_cov[1,1]*10**-8
+        """
         """
         if self.camc_cov[0,0] > 1:
             camc_cov = np.dot(self.camc_cov,np.array([[0.1,1],[1,1]]))
@@ -291,15 +317,22 @@ class simultaneous_localization():
             np.savetxt('debug_new_state.txt',self.old_state,fmt='%.8e',delimiter=',')
 
         target_pose, robot_pose = self.state2pose(self.old_state,new_cov)
+        _, target_cov, _ = self.pose2state(target_pose.pose)
+        _, robot_cov, _ = self.pose2state(robot_pose.pose)
+        target_H = self.calculate_entropy(target_cov)
+        robot_H = self.calculate_entropy(robot_cov)
 
         self.target_pub.publish(target_pose)
         self.robot_pub.publish(robot_pose)
 
-        self.old_cov = 1.1*new_cov
+        self.target_H_pub.publish(target_H)
+        self.robot_H_pub.publish(robot_H)
+
+        self.old_cov = 1.05*new_cov
 
         if self.lidar_loc+self.camc_loc+self.camg_loc < 0.1:
-            self.old_state[3] = 100
-            self.old_state[4] = 100
+            #self.old_state[3] = 100
+            #self.old_state[4] = 100
             self.old_cov = self.first_cov.copy()
 
         self.lidar_cov = None
