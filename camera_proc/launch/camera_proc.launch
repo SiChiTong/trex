@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<launch>
+<!-- play pag -->
+
+  <node 
+pkg="rosbag" 
+type="play" 
+name="player" 
+
+args="--clock /home/karim/catkin_ws/src/camera_proc/src/camera_data2.bag"
+/>
+
+
+        <!-- jfr_color_seg -->
+        <node 
+name="color_proc" 
+type="color_proc" 
+pkg="camera_proc" 
+output="screen"/>
+
+</launch>
