@@ -17,7 +17,7 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
   <!-- Load Trex control information -->
-  <include file="$(find trex_control)/launch/trex_control.launch"/>
+  <include file="$(find trex_gazebo)/launch/trex_control.launch"/>
 
   <!-- UR5 IN SIMULATION -->
   <group if="$(arg ur5_enabled)">

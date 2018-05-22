@@ -45,7 +45,7 @@ import scipy.signal as sg
 #import scipy.spatial.distance as scd
 #from rospy.numpy_msg import numpy_msg
 #from rospy_tutorials.msg import Floats
-#from nav_msgs.msg import Odometry
+from nav_msgs.msg import Odometry
 #import StringIO
 #from sensor_msgs.msg import Image
 #import cv2
@@ -75,7 +75,7 @@ class lidar_detect():
         self.dist_max = 2.0 # 1m is real target, 41in for height
         self.ylen_lim = 2
         self.ang_min = -0.78
-        self.ang_max = 0.78
+        self.ang_max = 1.57
         self.scan_dist_thresh = 15.0  # Distance threshold to split obj into 2 obj.
         self.max_range = 40
         self.old_cov = np.array([[1,0],[0,1]])
@@ -94,25 +94,44 @@ class lidar_detect():
         self.loc_thresh = 0.1
 
         # Find transformation from laser to base_link
+        print("Before tf_buffer")
         tf_buffer = tf2_ros.Buffer(rospy.Duration(1200.0)) #tf buffer length
+        print("After tf buffer")
         tf_listener = tf2_ros.TransformListener(tf_buffer)
+        print("After tf_listener")
         self.R = None
         self.physical_robot = False
         while self.R is None:
+            print("Waiting on R")
+            #now = rospy.Time.now()
+            #self.R = tf_buffer.lookup_transform("base_laser", "base_link", rospy.Time(0), rospy.Duration(100.0))
+            #print("Got something")
+
             try:
                 if self.physical_robot:
-                    self.R = tf_buffer.lookup_transform("velodyne_new", "base_link", rospy.Time(0), rospy.Duration(1.0))
+                    self.R = tf_buffer.lookup_transform("velodyne_new", "base_link", rospy.Time(0), rospy.Duration(100))
                 else:
-                    self.R = tf_buffer.lookup_transform("base_laser", "base_link", rospy.Time(0), rospy.Duration(1.0))
+                    self.R = tf_buffer.lookup_transform("base_laser", "base_link", rospy.Time(0), rospy.Duration(100))
             except:
                 print("Waiting on laser to base_link tf.")
                 rospy.sleep(1)
-
+        print("Found R")
         # Establish subscribers
         if self.physical_robot:
             rospy.Subscriber("/scan/long_range",sensor_msgs.msg.LaserScan,self.cb_scan, queue_size=1)
         else:
             rospy.Subscriber("/scan",sensor_msgs.msg.LaserScan,self.cb_scan, queue_size=1)
+        rospy.Subscriber('/odom',Odometry, self.cb_odom)
+    def cb_odom(self, data):
+        self.odom = data.pose.pose
+        self.x0 = self.odom.position.x
+        self.y0 = self.odom.position.y
+        X0 = self.odom.orientation.x
+        Y0 = self.odom.orientation.y
+        Z0 = self.odom.orientation.z
+        W0 = self.odom.orientation.w
+        [roll,pitch,yaw] = tf.transformations.euler_from_quaternion([X0,Y0,Z0,W0])
+        self.Rodom = np.array([[np.cos(yaw),-np.sin(yaw)],[np.sin(yaw),np.cos(yaw)]])
 
     def cb_scan(self, data):
         """
@@ -183,6 +202,19 @@ class lidar_detect():
                     dis = ((x_pt**2+y_pt**2))**0.5
 
                     if ang > self.ang_min and ang < self.ang_max:
+                        newInd = np.argmin(x_coord2[i][1:])+1
+                        x_pt = x_coord2[i][newInd]
+                        y_pt = y_coord2[i][newInd]
+                        #[x_coord_glo,y_coord_glo] = np.dot(self.Rodom,[x_coord2[i][1:],y_coord2[i][1:]])
+                        #print("xMinMax: ",np.min(x_coord_glo),np.max(x_coord_glo))
+                        #print("yMinMax: ",np.min(y_coord_glo),np.max(y_coord_glo))
+                        #indNew = np.argmin(x_coord_glo)
+                        #cornerLoc = [x_coord_glo[indNew]+0.25,y_coord_glo[indNew]+0.5]
+                        #print("Left: ",np.argmin(x_coord_glo))
+                        #print("Right:",cornerLoc)
+                        #print(self.x0,self.y0)
+                        #print(x_coord_glo[newInd]+self.x0+0.25)
+                        #print(y_coord_glo[newInd]+self.y0-0.5)
                         self.loc = 2*np.exp(-dis/20)
                         c_mat = [[1,0],[0,1]]
                         obs_cov = [[1/(1+10.0*self.loc),0],[0,1/(1+10.0*self.loc)]]
@@ -205,7 +237,7 @@ class lidar_detect():
                         p.point.z = 0.0
                         #new_p = do_transform_point(p, self.R)
                         new_p = p
-                        new_p.point.x = new_state[0] - 0.6
+                        new_p.point.x = new_state[0] + 0.6
                         new_p.point.y = new_state[1]
                         new_p.point.z = 0.0
                         u = (dist-self.xmin)/(self.xmax-self.xmin)*(self.umax-self.umin)+self.umin
@@ -226,6 +258,7 @@ class lidar_detect():
                         print(dis,self.loc)
                     else:
                         pass
+                        print("*Found an object outside FoV")
                         #print('fail1')
                 else:
                     pass

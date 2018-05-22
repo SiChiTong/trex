@@ -38,6 +38,8 @@ class simultaneous_localization():
     def __init__(self):
 
         rospy.init_node('simultaneous_localization', anonymous=True)
+        self.parametricNoise = 1.0
+        self.physical_robot = False
         self.lm_enable = True
         self.rl_enable = True
         self.lidar_target_enable = True
@@ -49,6 +51,8 @@ class simultaneous_localization():
         self.lidar_cov = None
         self.camc_cov = None
         self.camg_cov = None
+        self.cameraYbias = 0.5
+        self.locThresh = 2.0
 
         self.target_pub = rospy.Publisher('/jfr/target/position',PoseWithCovarianceStamped, queue_size=1)
         self.robot_pub = rospy.Publisher('/jfr/robot/correction',PoseWithCovarianceStamped,queue_size=1)
@@ -57,8 +61,10 @@ class simultaneous_localization():
         if self.lm_enable:
             rospy.Subscriber('/jfr/robot/pos/lidar',PoseWithCovarianceStamped, self.cb_lm)
         if self.rl_enable:
-            rospy.Subscriber('/odometry/filtered',Odometry, self.cb_rl)
-            #rospy.Subscriber('/odom',Odometry, self.cb_rl)
+            if self.physical_robot:
+                rospy.Subscriber('/odometry/filtered',Odometry, self.cb_rl)
+            else:
+                rospy.Subscriber('/odom',Odometry, self.cb_rl)
         if self.lidar_target_enable:
             rospy.Subscriber('/target/lidar',PoseWithCovarianceStamped, self.cb_lidar)
         if self.camc_target_enable:
@@ -90,24 +96,24 @@ class simultaneous_localization():
                 #print("Not missing data!")
                 total_loc = self.lidar_loc+self.camc_loc+self.camg_loc
                 print("Total LOC:",total_loc)
-                if total_loc > 2.0 and self.mode is 'Simultaneous':
+                if total_loc > self.locThresh and self.mode is 'Simultaneous':
                     self.simultaneous_revert()
                     self.counter = 0
-                elif total_loc <2.0 and self.mode is 'Sequential':
+                elif total_loc < self.locThresh and self.mode is 'Sequential':
                     self.sequential()
                     self.counter = 0
-                elif total_loc > 2.0 and self.mode is 'Sequential' and self.counter < 100:
+                elif total_loc > self.locThresh and self.mode is 'Sequential' and self.counter < 100:
                     self.counter = self.counter+1
                     rospy.sleep(0.01)
-                elif total_loc > 2.0 and self.mode is 'Sequential' and self.counter >= 100:
+                elif total_loc > self.locThresh and self.mode is 'Sequential' and self.counter >= 100:
                     self.swap2simultaneous()
                     self.simultaneous_revert()
                     self.counter = 0
-                elif total_loc < 2.0 and self.mode is 'Simultaneous' and self.counter >= 100:
+                elif total_loc < self.locThresh and self.mode is 'Simultaneous' and self.counter >= 100:
                     #self.swap2sequential()
                     #self.sequential()
                     self.counter = 0
-                elif total_loc < 2.0 and self.mode is 'Simultaneous' and self.counter < 100:
+                elif total_loc < self.locThresh and self.mode is 'Simultaneous' and self.counter < 100:
                     self.counter = self.counter+1
                     rospy.sleep(0.01)
                     
@@ -233,16 +239,21 @@ class simultaneous_localization():
     def cb_lidar(self, data):
         self.lidar_state, lidar_cov, self.lidar_loc = self.pose2state(data.pose)
         #print("lidar_loc:",self.lidar_loc)
-        self.lidar_cov = self.tar2loc(self.lidar_state,lidar_cov)
+        lidar_cov2 = lidar_cov*self.parametricNoise
+        self.lidar_cov = self.tar2loc(self.lidar_state,lidar_cov2)
 
     def cb_cam_color(self, data):
         self.camc_state, camc_cov, self.camc_loc = self.pose2state(data.pose)
         #print("camc_loc:",self.camc_loc)
-        self.camc_cov = self.tar2loc(self.camc_state,camc_cov)
+        camc_cov2 = camc_cov*self.parametricNoise
+        self.camc_state[1] = self.camc_state[1]+self.cameraYbias
+        self.camc_cov = self.tar2loc(self.camc_state,camc_cov2)
 
     def cb_cam_geom(self, data):
         self.camg_state, camg_cov, self.camg_loc = self.pose2state(data.pose)
         #print("camg_loc:",self.camg_loc)
+        camg_cov2 = camg_cov*self.parametricNoise
+        self.camg_state[1] = self.camg_state[1]+self.cameraYbias
         self.camg_cov = self.tar2loc(self.camg_state,camg_cov)
 
     def cb_rl(self, data):

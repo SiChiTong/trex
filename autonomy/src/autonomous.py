@@ -277,16 +277,16 @@ class mbzirc_c2_auto():
                 else:
                     bear = bearing.data[1]
                 # If the UGV is within 3m of the target, set the goal to 0
-                if bear < 3:
+                if bear < 5:
                     bear = 0
                 # Create target location in the local reference frame from the
                 # /detection angle and range
-                x = bear*np.cos(bearing.data[0])-1
-                y = bear*np.sin(bearing.data[0])-1
+                x = bear*np.cos(bearing.data[0])-1.5
+                y = bear*np.sin(bearing.data[0])+0.5
                 self.goal.target_pose.header.frame_id = 'base_link'
                 q = tf.transformations.quaternion_from_euler(
                     0,0,bearing.data[0])
-                if abs(bearing.data[0]) > 1.57:
+                if abs(bearing.data[0]) > 3*1.57:
                     self.goal.target_pose.pose = Pose(Point(x*0.0,y*0,0),
                         Quaternion(q[0],q[1],q[2],q[3]))
                     rospy.loginfo("Going to (x,y,yaw): (%f,%f,%f)",
@@ -313,6 +313,7 @@ class mbzirc_c2_auto():
                 self.noise_counter = 0
 
 if __name__ == '__main__':
+    rospy.sleep(1.0)
     mbzirc_c2_auto()
     try:
         rospy.spin()

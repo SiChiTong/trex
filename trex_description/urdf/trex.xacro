@@ -2,7 +2,7 @@
 <robot name="trex" xmlns:xacro="http://www.ros.org/wiki/xacro">     
   <xacro:arg name="ur5_enabled" default="false" />
   <xacro:arg name="velodyne_enabled" default="false" />
-  <xacro:arg name="sick_enabled" default="false" />
+  <xacro:arg name="sick_enabled" default="true" />
   <xacro:arg name="kinectv2_enabled" default="false" />
   <xacro:arg name="mbzirc_gripper" default="true" />
   <xacro:property name="PI" value="3.1415926535897931" />

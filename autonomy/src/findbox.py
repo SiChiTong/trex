@@ -81,7 +81,7 @@ class findbox():
 
         self.rate = rospy.Rate(10)
         self.scan_dist_thresh = 15.0  # Distance threshold to split obj into 2 obj.
-        self.plot_data = True
+        self.plot_data = False
         self.image_output = rospy.Publisher("/output/keyevent_image",Image, 
             queue_size=1)
 
