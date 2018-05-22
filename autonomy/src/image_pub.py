@@ -7,7 +7,7 @@ class image_pub():
     def __init__(self):
         rospy.init_node('image_pub', anonymous=True)
         self.bridge = CvBridge()
-        self.img = cv2.imread('/home/ugv/frame0000.jpg')
+        self.img = cv2.imread('~/frame0000.jpg')
         self.img_pub = rospy.Publisher("/usb_cam/image_raw",Image,queue_size=5)
         ros_img = self.bridge.cv2_to_imgmsg(self.img, "bgr8")
         for i in range(0,5):

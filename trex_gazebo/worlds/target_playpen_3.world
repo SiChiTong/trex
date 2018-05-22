@@ -1230,7 +1230,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/trex_description/meshes/wheelscover.STL</uri>
+              <uri>~/catkin_ws/src/trex/trex_description/meshes/wheelscover.STL</uri>
             </mesh>
           </geometry>
           <surface>
@@ -1249,7 +1249,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/trex_description/meshes/wheelscover.STL</uri>
+              <uri>~/catkin_ws/src/trex/trex_description/meshes/wheelscover.STL</uri>
             </mesh>
           </geometry>
           <surface>
@@ -1296,7 +1296,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/trex_description/meshes/accessories/lms1xx_mount.dae</uri>
+              <uri>~/catkin_ws/src/trex/trex_description/meshes/accessories/lms1xx_mount.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -1305,7 +1305,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/trex_description/meshes/Chassis.STL</uri>
+              <uri>~/catkin_ws/src/trex/trex_description/meshes/Chassis.STL</uri>
             </mesh>
           </geometry>
           <material>
@@ -1320,7 +1320,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/trex_description/meshes/wheelscover.STL</uri>
+              <uri>~/catkin_ws/src/trex/trex_description/meshes/wheelscover.STL</uri>
             </mesh>
           </geometry>
           <material>
@@ -1335,7 +1335,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/trex_description/meshes/wheelscover.STL</uri>
+              <uri>~/catkin_ws/src/trex/trex_description/meshes/wheelscover.STL</uri>
             </mesh>
           </geometry>
           <material>
@@ -1459,7 +1459,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/trex_description/meshes/wheel.STL</uri>
+              <uri>~/catkin_ws/src/trex/trex_description/meshes/wheel.STL</uri>
             </mesh>
           </geometry>
           <material>
@@ -1548,7 +1548,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/trex_description/meshes/wheel.STL</uri>
+              <uri>~/catkin_ws/src/trex/trex_description/meshes/wheel.STL</uri>
             </mesh>
           </geometry>
           <material>
@@ -1620,7 +1620,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/trex_description/meshes/wheel.STL</uri>
+              <uri>~/catkin_ws/src/trex/trex_description/meshes/wheel.STL</uri>
             </mesh>
           </geometry>
           <material>
@@ -1688,7 +1688,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/trex_description/meshes/wheel.STL</uri>
+              <uri>~/catkin_ws/src/trex/trex_description/meshes/wheel.STL</uri>
             </mesh>
           </geometry>
           <material>
@@ -2104,7 +2104,7 @@
           <geometry>
             <mesh>
               <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/gripper/gripper_description/meshes/base_link_old.stl</uri>
+              <uri>~/catkin_ws/src/trex/gripper/gripper_description/meshes/base_link_old.stl</uri>
             </mesh>
           </geometry>
           <max_contacts>10</max_contacts>
@@ -2159,7 +2159,7 @@
           <geometry>
             <mesh>
               <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/gripper/gripper_description/meshes/link_1.stl</uri>
+              <uri>~/catkin_ws/src/trex/gripper/gripper_description/meshes/link_1.stl</uri>
             </mesh>
           </geometry>
           <max_contacts>10</max_contacts>
@@ -2178,7 +2178,7 @@
           <geometry>
             <mesh>
               <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/gripper/gripper_description/meshes/link_2.stl</uri>
+              <uri>~/catkin_ws/src/trex/gripper/gripper_description/meshes/link_2.stl</uri>
             </mesh>
           </geometry>
           <surface>
@@ -2215,7 +2215,7 @@
           <geometry>
             <mesh>
               <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/gripper/gripper_description/meshes/base_link.dae</uri>
+              <uri>~/catkin_ws/src/trex/gripper/gripper_description/meshes/base_link.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -2246,7 +2246,7 @@
           <geometry>
             <mesh>
               <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/gripper/gripper_description/meshes/link_1.dae</uri>
+              <uri>~/catkin_ws/src/trex/gripper/gripper_description/meshes/link_1.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -2255,7 +2255,7 @@
           <geometry>
             <mesh>
               <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/gripper/gripper_description/meshes/link_2.dae</uri>
+              <uri>~/catkin_ws/src/trex/gripper/gripper_description/meshes/link_2.dae</uri>
             </mesh>
           </geometry>
           <material>
@@ -2348,7 +2348,7 @@
           <geometry>
             <mesh>
               <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/gripper/gripper_description/meshes/tip.stl</uri>
+              <uri>~/catkin_ws/src/trex/gripper/gripper_description/meshes/tip.stl</uri>
             </mesh>
           </geometry>
           <surface>
@@ -2376,7 +2376,7 @@
           <geometry>
             <mesh>
               <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/gripper/gripper_description/meshes/tip.dae</uri>
+              <uri>~/catkin_ws/src/trex/gripper/gripper_description/meshes/tip.dae</uri>
             </mesh>
           </geometry>
           <material>
@@ -2427,7 +2427,7 @@
           <geometry>
             <mesh>
               <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/gripper/gripper_description/meshes/tip.stl</uri>
+              <uri>~/catkin_ws/src/trex/gripper/gripper_description/meshes/tip.stl</uri>
             </mesh>
           </geometry>
           <surface>
@@ -2455,7 +2455,7 @@
           <geometry>
             <mesh>
               <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ugv/catkin_ws/src/trex/gripper/gripper_description/meshes/tip.dae</uri>
+              <uri>~/catkin_ws/src/trex/gripper/gripper_description/meshes/tip.dae</uri>
             </mesh>
           </geometry>
           <material>

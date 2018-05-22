@@ -38,7 +38,7 @@ class idwrench():
         self.save_flag = True
         self.preview_flag = False           # Should we preview images
         self.live = False
-        self.dir = '/home/ugv/'
+        self.dir = '~/'
         self.box_width = 1.0
 
         # Tweaking parameters - Need to adjust for different distances from camera
@@ -426,7 +426,7 @@ class idwrench():
         for n in range(len(circles[0,:,1])):
             cv2.circle(img_hou_all,(center_x[n],center_y[n]), radius[n],
                 (0,0,244), 2, cv2.CV_AA)
-        cv2.imwrite('/home/ugv/wrenchID_6_allcircles.png',img_hou_all)
+        cv2.imwrite('~/wrenchID_6_allcircles.png',img_hou_all)
         #cv2.imshow('All Circles',img_hou_all)
         #cv2.waitKey(0)
         # Establish matrix of features to use for quanitzation

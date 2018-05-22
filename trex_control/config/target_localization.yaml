@@ -3,7 +3,7 @@ base_link_frame: base_link  # Defaults to "base_link" if unspecified
 world_frame: target           # Defaults to the value of odom_frame if unspecified
 
 debug: true
-debug_out_file: /home/ugv/rob_loc_debug.txt
+debug_out_file: ~/rob_loc_debug.txt
 
 two_d_mode: true
 
